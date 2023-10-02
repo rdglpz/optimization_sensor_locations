@@ -18,7 +18,7 @@ import config.config as cfg
 importlib.reload(cfg)
 
 
-def f5(i,p,e=4):
+def f5(i, p, e = 4):
     '''
     Pesos exponenciales
     

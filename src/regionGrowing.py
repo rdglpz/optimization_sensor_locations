@@ -20,7 +20,7 @@ class rGrowing():
         self.coords = list([])
         
     
-    def setParams(self,params):
+    def setParams(self, params):
         
         if params["type"]=="semivar":
             

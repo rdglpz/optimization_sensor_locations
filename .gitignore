@@ -162,4 +162,4 @@ cython_debug/
 #other Jupyter notebook control files
 
 *.DS_Store
-*experiments
+experiments/
