@@ -17,7 +17,8 @@ class NetworkFitness():
                  network,
                  r,
                  th,
-                 alpha = 0.5
+                 alpha = 0.5,
+                 minimize =True
                 ):
 
         print("Selct cost functions: \n 'xor','max' or 'cover'")
@@ -33,6 +34,7 @@ class NetworkFitness():
         self.th = th
         self.c = self.generateCombinations(x, r)
         self.alpha = alpha
+        self.activateFunction = "best_compromise"
         
     
     def plotLocations(self, X):
@@ -49,6 +51,7 @@ class NetworkFitness():
         '''
         
         '''
+        alpha = qp[-1]
         
         
         
@@ -61,15 +64,17 @@ class NetworkFitness():
         maximum_average = np.average(np.sort(self.NTLI.flatten())[-n:])
         
         #$C^n_r = n!/(r!(n-r)!)$ Eq (2)
+        #print(r)
+        
         K = list(it.combinations(np.arange(n), r))
         
         maximum = 0
         
-        qc = np.copy(q)
+        #qc = np.copy(q)
         
         for j, k in enumerate(K):
         
-            #print("Combination No:", j)
+            #print("Combination No:", j, k, r)
         
             #new copy of the network for every new combination
             qc = np.copy(q)
@@ -114,13 +119,78 @@ class NetworkFitness():
 
         return -maximum
     
+            
+        
+    def J_lambda(self, qp):
+        '''
+        
+        '''
+        #alpha = qp[-1]
+        
+        qp = qp.astype(int)
+        
+        q = self.init_network
+        r = self.r
+        
+        #recovering the number of sensors
+        n = int(len(q)/2)
+        
+        maximum_average = np.average(np.sort(self.NTLI.flatten())[-n:])
+        
+        #$C^n_r = n!/(r!(n-r)!)$ Eq (2)
+        #print(r)
+        
+        K = list(it.combinations(np.arange(n), r))
+        
+        minimum = np.inf
+        
+        #qc = np.copy(q)
+        
+        for j, k in enumerate(K):
+        
+            #new copy of the network for every new combination
+            qc = np.copy(q)
+
+            #index of selected sensors
+            for c in k:
+         
+                s_ix = [c*2, c*2 + 1]
+            
+                #crossover, we substitute the sensors of the selected 
+                #index for the alternative positions
+                
+                qc[s_ix] = qp[s_ix]
+                
+        
+            #covers
+            
+            F1 = self.f1(qc)
+            F3 = self.f3(qc)
+
+                
+            d1 = (F1+1)**2
+            d2 = (F3+1)**2
+            f = np.sqrt(self.alpha*d1 + (1-self.alpha)*d2)
+                
+   
+            if f < minimum:
+    
+                minimum = f
+        
+                self.bestComb = np.copy(qc)
+            
+
+        return minimum
+    
+    
+    
     def f1(self, X):
         
         positions = X.reshape(-1, 2)
         covers = self.getCapturedLightPollutionCovers(positions)
         LP = np.sum(np.max(covers, axis=0))
         PLP = np.sum(self.NTLI*self.EAM)
-        return LP/PLP
+        return -LP/PLP
         
         
     
@@ -228,7 +298,7 @@ class NetworkFitness():
         maxC = np.max(C, axis = 0)
         maxC = np.sum(maxC)
         
-        return maxC/np.sum(MH*FDNTLI)
+        return -maxC/np.sum(MH*FDNTLI)
         
         
         
